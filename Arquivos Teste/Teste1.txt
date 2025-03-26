@@ -1,0 +1,7 @@
+bla="Texto para teste"
+
+bleee="aqui teste
+
+a=""
+
+b=" " 
