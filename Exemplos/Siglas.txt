@@ -1,0 +1,12 @@
+PRE palavra reservada..............ok
+IDE identificador..................ok
+CAC cadeia de caracteres
+NRO numero.........................ok
+DEL delimitador 
+REL operador relacional
+LOG operador logico
+ART operador aritmetico
+CadMF cadeia mal formada
+CoMF comentário mal formado
+NMF numero mal formado
+TMF	token mal formado
