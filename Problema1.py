@@ -25,7 +25,7 @@ lista_nomes_arquivos = []
 # Caminho da pasta de teste
 raiz_arq = ''
 
-# Percorrer todos os arquivos da pasta
+# Percorrer todos os arquivos da pasta e salva o nome em uma lista
 for raiz, diretorios, arquivos in os.walk(pasta_selecionada):
     for arquivo in arquivos:
         caminho_completo = os.path.join(raiz, arquivo)
@@ -33,6 +33,7 @@ for raiz, diretorios, arquivos in os.walk(pasta_selecionada):
         lista_caminho_arquivos.append(caminho_completo)
     raiz_arq = raiz
 
+# Listas das palavras, letras ou símbolos reservados
 palavras_reservadas = ["variables", "const", "class", "methods", "main", "return", "if", "else", "for", "read", "print", "void", "int", "float", "boolean", "string", "true", "false"]
 operadores_aritmeticos = ["+", "-", "*", "/", "++", "--"]
 operadores_relacionais = ["!=", "==", "<", "<=", ">", ">=", "="]
@@ -46,70 +47,73 @@ acentos = ['À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë
 # Percorrer os arquivos para abrir e ler o conteúdo
 for arquivo in lista_caminho_arquivos:
   with open(arquivo, "r", encoding="utf-8") as arquivo:
-      # Núemro da linha no arquivo
+      # Núemro da linha no arquivo para mostrar no arquivo final
       numero_linha = 0
       
-      # Percorre cada linha do arquivo
+      # Percorre cada linha do arquivo para analisar todos os tokens
       for linha in arquivo:
+        # Contagem das linhas
         numero_linha += 1
         
-        # Filtra linhas em branco ou espaços vazios
+        # Filtra linhas em branco ou espaços vazios que aparecem antes ou depois de cada linhas (não filtra os espaços vazios entre as linhas)
         if not linha.isspace():
           
-          # Conferir se os tokens estão corretos de acordo com a linha
+          # Conferir se os tokens estão corretos de acordo com a linha, apenas para debug
           print("Conteúdo da linha do arquivo: ", linha) 
           
+          # Lugar onde cada token vai ser armazenado, e depois vai ser resetado para o token seguinte
           palavra_token = ''
+          # Número que indica a posição do caracter da linha
           caracter = 0
           
           # O valor do caracter não pode passar o valor da linha para não ocorrer o erro out of range
           while caracter < len(linha):
 
-            # Dígito
+            # Dígito (Reconhecer os números)
             if linha[caracter].isdigit():
               palavra_token += linha[caracter]
 
-              # Verifica se tem mais de um ponto no número (1 primeiro ponto, -1 segundo ponto)
-              fracionario = 1
+              # Verifica se tem mais de um ponto no número (True primeiro ponto, False segundo ponto). Se um ponto for achado no meio de um número o fracionario 
+              # recebe o valor de False. Se algum outro ponto for achado o loop é quebrado.
+              fracionario = False
 
-              # Verifica os caracteres seguintes com a condição de não ver um caracter inválido
+              # Verifica os caracteres seguintes com as condições de ser número, ponto ou não ser espaço vazio
               while caracter + 1 < len(linha) and (linha[caracter + 1].isdigit() or linha[caracter + 1] == '.') and linha[caracter + 1] != ' ':
                 caracter += 1
                 palavra_token += linha[caracter]
                 
                 # Mudar o indicador de ponto
                 if linha[caracter] == '.':
-                  fracionario *= -1
+                  fracionario = True
                 
                 # Para caso tenha um segundo ponto
-                if linha[caracter + 1] == '.' and fracionario == -1:
+                if linha[caracter + 1] == '.' and fracionario:
                   break
               
-              print('(Tipo: Número, Valor: "%s")' % (palavra_token))
-              #####  print("%.2d NRO %s" % (numero_linha, palavra_token))
+              # Verificar se não é um número mal formado
+              if palavra_token[len(palavra_token) - 1] == '.':
+                print('(Tipo: Número MAL FORMADO, Valor: "%s")' % (palavra_token)) ###################################################
+              else:
+                print('(Tipo: Número, Valor: "%s")' % (palavra_token)) ###################################################
               palavra_token = ''
 
-            # Letra
+            # Letra (Reconhecer os identificadores e palavras reservadas)
             elif linha[caracter].isalpha():
+              
               palavra_token += linha[caracter]
               while caracter + 1 < len(linha) and (linha[caracter + 1].isalpha() or linha[caracter + 1].isdigit() or linha[caracter + 1] == '_') and linha[caracter + 1] != ' ':
                 caracter += 1
                 palavra_token += linha[caracter]
+
+
               if palavra_token in palavras_reservadas:
-                print('(Tipo: Palavra reservada, Valor: "%s")' % (palavra_token))
-                #### print("%.2d PRE %s" % (numero_linha, palavra_token))
-              
-              ########################################## CONFERIR #############################################
+                print('(Tipo: Palavra reservada, Valor: "%s")' % (palavra_token)) ###################################################         
               else:
-                for caracter_id in palavra_token:
-                  if caracter_id in acentos:
-                    print('(Tipo: Identificador MAL FORMADO, Valor: "%s")' % (palavra_token))
-                    break
-                  print('(Tipo: Identificador, Valor: "%s")' % (palavra_token))
-                ### print("%.2d IDE %s" % (numero_linha, palavra_token))
+                print('(Tipo: Identificador, Valor: "%s")' % (palavra_token)) ###################################################
+              
               palavra_token = ''   
 
-            # Símbolo
+            # Símbolo (Reconhecer os símbolos e cadeias de caracteres) 
             elif linha[caracter] in string.punctuation:
               palavra_token += linha[caracter]
 
@@ -118,31 +122,32 @@ for arquivo in lista_caminho_arquivos:
               op_logicos = False
               palavra = False
               
-              while caracter + 1 < len(linha) and (linha[caracter + 1] in string.punctuation) and linha[caracter + 1] != ' ' and palavra_token != '"':
+              while caracter + 1 < len(linha) and (linha[caracter + 1] in string.punctuation) and linha[caracter + 1] != ' ':               
                 
-                if caracter + 1 < len(linha):
-                  if palavra_token in operadores_aritmeticos and palavra_token + linha[caracter + 1] not in operadores_aritmeticos:
-                    op_aritmeticos = True
-                    break
+                if palavra_token in operadores_aritmeticos and palavra_token + linha[caracter + 1] not in operadores_aritmeticos:
+                  op_aritmeticos = True
+                  break
 
-                  elif palavra_token in operadores_relacionais and palavra_token + linha[caracter + 1] not in operadores_relacionais:
-                    op_relacionais = True
-                    break
+                elif palavra_token in operadores_relacionais and palavra_token + linha[caracter + 1] not in operadores_relacionais:
+                  op_relacionais = True
+                  break
 
-                  elif palavra_token in operadores_logicos and palavra_token + linha[caracter + 1] not in operadores_logicos:
-                    op_logicos = True
-                    break
+                elif palavra_token in operadores_logicos and palavra_token + linha[caracter + 1] not in operadores_logicos:
+                  op_logicos = True
+                  break
+
+                elif palavra_token == '"':
+                  palavra = True
+                  caracter += 1
+                  palavra_token += linha[caracter]
+                  print("PALAVRA TOKEN DEBUGGG:", palavra_token)
+                  while palavra_token[len(palavra_token) - 1] != '"' and caracter < len(linha):
+                    print("BLAAAAAAAAAAAAAAAAAAA")
+                    palavra_token += linha[caracter]
+                    caracter += 1
                   
                 caracter += 1
                 palavra_token += linha[caracter]
-
-              if palavra_token == '"':
-                palavra = True
-                caracter += 1
-                palavra_token += linha[caracter]
-                while palavra_token[len(palavra_token) - 1] != '"' and caracter < len(linha):
-                  palavra_token += linha[caracter]
-                  caracter += 1
 
               if op_aritmeticos or palavra_token in operadores_aritmeticos:
                 print('(Tipo: Operador Aritmético, Valor: "%s")' % (palavra_token))
@@ -154,7 +159,7 @@ for arquivo in lista_caminho_arquivos:
                 print('(Tipo: Operador Lógico, Valor: "%s")' % (palavra_token))
 
               elif palavra:
-                print('(Tipo: Cadeia de caracter, Valor: %s)' % (palavra_token))
+                print('(Tipo: Cadeia de caracter SEM ASPAS, Valor: %s)' % (palavra_token))
               
               else:
                 print('(Tipo: Simbolo, Valor: "%s")' % (palavra_token))
@@ -172,6 +177,7 @@ PENDENCIAS:
 
 * Tirar os acentos
 * Tirar os comentários
+
 '''
 
 
