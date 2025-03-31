@@ -45,12 +45,17 @@ acentos = ['À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë
  'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'þ', 'ÿ']
 
 # Percorrer os arquivos para abrir e ler o conteúdo
-for arquivo in lista_caminho_arquivos:
-  with open(arquivo, "r", encoding="utf-8") as arquivo:
+for nome_arquivo in lista_caminho_arquivos:
+  with open(nome_arquivo, "r", encoding="utf-8") as arquivo:
       # Núemro da linha no arquivo para mostrar no arquivo final
       numero_linha = 0
 
+      # Identificador se a leitura está em um comentário ou não
       comentario = False
+
+      # Lista de tokens e erros
+      lista_tokens = []
+      lista_erros = []
       
       # Percorre cada linha do arquivo para analisar todos os tokens
       for linha in arquivo:
@@ -58,7 +63,8 @@ for arquivo in lista_caminho_arquivos:
         numero_linha += 1
         
         # Lugar onde cada token vai ser armazenado, e depois vai ser resetado para o token seguinte
-        palavra_token = ''
+        if not comentario:
+          palavra_token = ''
         
         # Número que indica a posição do caracter da linha
         caracter = 0
@@ -73,7 +79,10 @@ for arquivo in lista_caminho_arquivos:
             if caracter + 1 < len(linha) and linha[caracter] + linha[caracter + 1] == "*/":
               print("Fim comentário")
               comentario = False
+              palavra_token += linha[caracter]
               caracter += 1
+            if linha[caracter] != "\n":
+              palavra_token += linha[caracter]
             caracter += 1
             
           # O valor do caracter não pode passar o valor da linha para não ocorrer o erro out of range
@@ -81,12 +90,17 @@ for arquivo in lista_caminho_arquivos:
 
             if caracter + 1 < len(linha) and linha[caracter] + linha[caracter + 1] == "/*":
               print("Comentário")
+              palavra_token += linha[caracter]
               comentario = True
               caracter += 1
+              while caracter + 1 < len(linha) and linha[caracter] + linha[caracter + 1] != '*/':
+                if linha[caracter] != "\n":
+                  palavra_token += linha[caracter]
+                caracter += 1
               break
 
             # Dígito (Reconhecer os números)
-            elif linha[caracter].isdigit():
+            elif linha[caracter].isdigit() or (caracter + 1 < len(linha) and (linha[caracter] == '-' and (op_aritmeticos or op_relacionais or id_delimitadores) and linha[caracter + 1].isdigit())):
               palavra_token += linha[caracter]
 
               # Verifica se tem mais de um ponto no número (True primeiro ponto, False segundo ponto). Se um ponto for achado no meio de um número o fracionario 
@@ -103,14 +117,14 @@ for arquivo in lista_caminho_arquivos:
                   fracionario = True
                 
                 # Para caso tenha um segundo ponto
-                if linha[caracter + 1] == '.' and fracionario:
+                if caracter + 1 < len(linha) and linha[caracter + 1] == '.' and fracionario:
                   break
               
               # Verificar se não é um número mal formado
               if palavra_token[len(palavra_token) - 1] == '.':
-                print('(Tipo: Número MAL FORMADO, Valor: "%s")' % (palavra_token)) ###################################################
+                lista_erros.append("{:02d} NMF {:s}".format(numero_linha, palavra_token))
               else:
-                print('(Tipo: Número, Valor: "%s")' % (palavra_token)) ###################################################
+                lista_tokens.append("{:02d} NRO {:s}".format(numero_linha, palavra_token))
               palavra_token = ''
 
             # Letra (Reconhecer os identificadores e palavras reservadas)
@@ -125,9 +139,9 @@ for arquivo in lista_caminho_arquivos:
 
               # Separar entre palavras reservadas ou identificadores
               if palavra_token in palavras_reservadas:
-                print('(Tipo: Palavra reservada, Valor: "%s")' % (palavra_token)) ###################################################         
+                lista_tokens.append("{:02d} PRE {:s}".format(numero_linha, palavra_token))         
               else:
-                print('(Tipo: Identificador, Valor: "%s")' % (palavra_token)) ###################################################
+                lista_tokens.append("{:02d} IDE {:s}".format(numero_linha, palavra_token))
               
               palavra_token = ''   
 
@@ -141,6 +155,7 @@ for arquivo in lista_caminho_arquivos:
               op_logicos = False
               id_delimitadores = False
               palavra = False
+              comentario_linha = False
               
               # Identifica operadores com dois elementos ou uma cadeira de caracteres
               while palavra_token == '"' or (caracter + 1 < len(linha) and linha[caracter + 1] in string.punctuation and linha[caracter + 1] != ' '):
@@ -149,6 +164,7 @@ for arquivo in lista_caminho_arquivos:
                 if palavra_token + linha[caracter + 1] == "//":
                   caracter = len(linha)
                   palavra_token = ''
+                  comentario_linha = True
                   break
 
                 elif (palavra_token in operadores_aritmeticos or palavra_token + linha[caracter + 1] in operadores_aritmeticos) and (palavra_token + linha[caracter + 1] not in delimitadores):
@@ -187,62 +203,63 @@ for arquivo in lista_caminho_arquivos:
                   break
                 
                 else:
-                  print('(Tipo: Simbolo, Valor: "%s")' % (palavra_token)) #########################################################################
+                  lista_erros.append("{:02d} TMF {:s}".format(numero_linha, palavra_token))
                   palavra_token = ''
                   caracter += 1
                   palavra_token += linha[caracter]
 
               if op_aritmeticos or palavra_token in operadores_aritmeticos:
-                print('(Tipo: Operador Aritmético, Valor: "%s")' % (palavra_token)) #########################################################################
+                op_aritmeticos = True
+                lista_tokens.append("{:02d} ART {:s}".format(numero_linha, palavra_token))
 
               elif op_relacionais or palavra_token in operadores_relacionais:
-                print('(Tipo: Operador relacional, Valor: "%s")' % (palavra_token)) #########################################################################
+                op_relacionais = True
+                lista_tokens.append("{:02d} REL {:s}".format(numero_linha, palavra_token))
 
               elif op_logicos or palavra_token in operadores_logicos:
-                print('(Tipo: Operador Lógico, Valor: "%s")' % (palavra_token)) #########################################################################
-
+                lista_tokens.append("{:02d} LOG {:s}".format(numero_linha, palavra_token))
+                
               elif id_delimitadores or palavra_token in delimitadores:
-                print('(Tipo: Delimitador, Valor: "%s")' % (palavra_token)) #########################################################################
+                id_delimitadores = True
+                lista_tokens.append("{:02d} DEL {:s}".format(numero_linha, palavra_token))
 
               elif palavra:
                 mal_formado = False
                 if palavra_token[len(palavra_token) - 1] != '"':
-                  print('(Tipo: Cadeira MAL FORMADA FALTA ASPAS, Valor: %s)' % (palavra_token)) #########################################################################
+                  lista_erros.append("{:02d} CadMF {:s}".format(numero_linha, palavra_token))
+      
                 else:
                   for caracter_id in palavra_token:
                     if caracter_id in acentos:
                       mal_formado = True
                       break
                   if mal_formado:
-                    print('(Tipo: Cadeira MAL FORMADA COM ACENTO, Valor: %s)' % (palavra_token)) #########################################################################
+                    lista_erros.append("{:02d} CadMF {:s}".format(numero_linha, palavra_token))
+                    
                   else:
-                    print('(Tipo: Cadeia de caracter SEM ASPAS, Valor: %s)' % (palavra_token)) #########################################################################
-          
+                    lista_tokens.append("{:02d} CAC {:s}".format(numero_linha, palavra_token))
+                                
+              elif not comentario_linha:
+                lista_erros.append("{:02d} TMF {:s}".format(numero_linha, palavra_token))
+                          
               palavra_token = ''
               
             caracter += 1
-        
-        print("NUMERO LINHAAAA: ", numero_linha)
       
       if comentario:
-        print("Comentário não fechado") #################################################################################
+        lista_erros.append("{:02d} CoMF {:s}".format(numero_linha, palavra_token))
 
-
-
-
-
-
-'''
-ARQUIVOS DE SAÍDA, JÁ CORRETO
-
-
-# Criar os arquivos de saída (vazios por enquanto)
-for arquivos in lista_nomes_arquivos:
-  nome, extensao = os.path.splitext(arquivos)
-  print(nome)
-  nome_saida = raiz_arq + '/' + nome + '-saida' + extensao
-  print(nome_saida)
-  with open(nome_saida, "w", encoding="utf-8") as arquivo:
-    arquivo.write("Este é um arquivo criado em Python!\n")
-    arquivo.write(nome_saida)
-'''
+  
+  
+  nome, extensao = os.path.splitext(nome_arquivo)
+  
+  nome_saida = nome + '-saida' + extensao
+  
+  with open(nome_saida, "w", encoding="utf-8") as arquivo_saida:
+    for linha in lista_tokens:
+      linha = linha.rstrip("\n")
+      arquivo_saida.write(linha + "\n")
+    arquivo_saida.write("\n")
+    for linha in lista_erros:
+      linha = linha.rstrip("\n")
+      arquivo_saida.write(linha + "\n")
