@@ -1,7 +1,13 @@
-bla="Texto para teste"
+exemplo tes#te;
 
-bleee="aqui teste
+float f = -3.0;
+@
+texto msg = "teste
 
-a=""
+if ( f >= 10.3.4) && (f < ) 
+	print("mensagem);
+	print("menÇagem");
+// exemplo de teste do lexico
 
-b=" " 
+/* exa869 mi processadores de
+		linguagem de programacao

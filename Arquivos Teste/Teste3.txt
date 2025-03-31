@@ -1,0 +1,5 @@
+string amanda = "Amanda"
+
+int ca = -3
+
+// BLAAAAAA
