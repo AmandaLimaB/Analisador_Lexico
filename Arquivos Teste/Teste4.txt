@@ -1,9 +1,0 @@
-id = 4 >= 8
-id2 = 45 - 80
-
-/* ISSSO é um comentário
-
-continua
-
-...
-

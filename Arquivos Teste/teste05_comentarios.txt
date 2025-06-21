@@ -1,0 +1,14 @@
+// teste 05 - comentarios
+
+// comentando // uma // linha 
+float b;
+
+ /* comeca aqui
+
+s = -1.3;    /*
+b = termina aqui */ 1.2
+
+a = // -1;
+
+/* comeca aqui
+cade o fim de comentario?

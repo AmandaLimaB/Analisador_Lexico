@@ -1,0 +1,11 @@
+// teste 04 - operadores lógicos e relacionais
+
+a ! !=b
+
+a != !b
+
+a >= b & & c < = d
+
+a && b*2 
+
+| | b-- <== d

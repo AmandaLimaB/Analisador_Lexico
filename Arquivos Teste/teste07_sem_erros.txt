@@ -1,0 +1,25 @@
+/* 
+	teste07 - sem erros
+*/
+
+const int MAX = 10, MAX2 = 50;
+	
+string Mensagem = "Hello world";
+
+class main {  // comeca aqui o programa principal 
+
+	int idade; 
+	string nome;
+	float salario;
+	print("Digite o nome");
+	read(nome);
+	print("Digite a idade");
+	read(idade);
+	
+	salario = salario+++100 
+	
+	if (idade >= 150) print("pode aposentar kkkk");
+	else {
+		print("vai trabalhar"); // hehehe
+	}	 
+}

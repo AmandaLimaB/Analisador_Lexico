@@ -1,0 +1,11 @@
+// teste06 - cadeia de caracteres
+
+" ok "
+
+"cadeia
+
+outra string"
+
+" string com simbolo invalido ¶ "
+
+" diga  "oi""

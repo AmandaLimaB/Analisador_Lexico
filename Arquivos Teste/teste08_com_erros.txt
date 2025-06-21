@@ -1,0 +1,12 @@
+// teste08 com erros
+	
+float 33.#33;
+
+string menÇagem
+
+123#.45
+
+"erro na cadeia. falta fecha aspas
+
+/* nao fechou //
+comentario //

@@ -1,0 +1,12 @@
+//teste 01 - identificadores
+
+methods main (  )
+{ 
+int cont@dor;
+
+ 
+	salario$mes;
+
+	flag_#1, flag2 flag_3_#;
+    
+uefs_123
