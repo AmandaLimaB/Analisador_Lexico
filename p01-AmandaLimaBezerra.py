@@ -39,10 +39,15 @@ operadores_aritmeticos = ["+", "-", "*", "/", "++", "--"]
 operadores_relacionais = ["!=", "==", "<", "<=", ">", ">=", "="]
 operadores_logicos = ["!", "&&", "||"]
 delimitadores = [";", ",", ".", "(", ")", "[", "]", "{", "}", "->"]
-acentos = ['À', 'Á', 'Â', 'Ã', 'Ä', 'Å', 'Æ', 'Ç', 'È', 'É', 'Ê', 'Ë', 'Ì', 'Í', 'Î', 'Ï', 
- 'Ð', 'Ñ', 'Ò', 'Ó', 'Ô', 'Õ', 'Ö', 'Ø', 'Ù', 'Ú', 'Û', 'Ü', 'Ý', 'Þ', 'ß', 'à', 
- 'á', 'â', 'ã', 'ä', 'å', 'æ', 'ç', 'è', 'é', 'ê', 'ë', 'ì', 'í', 'î', 'ï', 'ð', 
- 'ñ', 'ò', 'ó', 'ô', 'õ', 'ö', 'ø', 'ù', 'ú', 'û', 'ü', 'ý', 'þ', 'ÿ']
+caracteres_permitidos = [
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+    'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M',
+    'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',    
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    ' ', '!', '#', '$', '%', '&', "'", '(', ')', '*', '+', ',', '-', 
+    '.', '/', ':', ';', '<', '=', '>', '?', '@', '[', '\\', ']', '^',
+    '_', '`', '{', '|', '}', '~']
 
 # Percorrer os arquivos para abrir e ler o conteúdo
 for nome_arquivo in lista_caminho_arquivos:
@@ -83,6 +88,8 @@ for nome_arquivo in lista_caminho_arquivos:
               caracter += 1
             if linha[caracter] != "\n":
               palavra_token += linha[caracter]
+            if palavra_token[len(palavra_token) - 2] + palavra_token[len(palavra_token) - 1] == '*/':
+                palavra_token = ''
             caracter += 1
             
           # O valor do caracter não pode passar o valor da linha para não ocorrer o erro out of range
@@ -97,6 +104,8 @@ for nome_arquivo in lista_caminho_arquivos:
                 if linha[caracter] != "\n":
                   palavra_token += linha[caracter]
                 caracter += 1
+              if palavra_token[len(palavra_token) - 2] + palavra_token[len(palavra_token) - 1] == '*/':
+                palavra_token = ''
               break
 
             # Dígito (Reconhecer os números)
@@ -140,8 +149,29 @@ for nome_arquivo in lista_caminho_arquivos:
               # Separar entre palavras reservadas ou identificadores
               if palavra_token in palavras_reservadas:
                 lista_tokens.append("{:02d} PRE {:s}".format(numero_linha, palavra_token))         
-              else:
-                lista_tokens.append("{:02d} IDE {:s}".format(numero_linha, palavra_token))
+              # Separar caracteres não permitidos nos identificadores
+              else: 
+                num_caracter = 0
+                erro = False
+                acerto = False
+                palavra_token_aux = ''
+                while num_caracter < len(palavra_token):
+                  while num_caracter < len(palavra_token) and palavra_token[num_caracter] not in caracteres_permitidos:
+                    palavra_token_aux += palavra_token[num_caracter]
+                    num_caracter += 1
+                    erro = True
+                  if erro:
+                    lista_erros.append("{:02d} TMF {:s}".format(numero_linha, palavra_token_aux))
+                    erro = False
+                    palavra_token_aux = ''
+                  while num_caracter < len(palavra_token) and palavra_token[num_caracter] in caracteres_permitidos:
+                    palavra_token_aux += palavra_token[num_caracter]
+                    num_caracter += 1
+                    acerto = True
+                  if acerto:
+                    lista_tokens.append("{:02d} IDE {:s}".format(numero_linha, palavra_token_aux))
+                    acerto = False
+                    palavra_token_aux = ''
               
               palavra_token = ''   
 
@@ -229,8 +259,8 @@ for nome_arquivo in lista_caminho_arquivos:
                   lista_erros.append("{:02d} CadMF {:s}".format(numero_linha, palavra_token))
       
                 else:
-                  for caracter_id in palavra_token:
-                    if caracter_id in acentos:
+                  for num_caracter in range(1, len(palavra_token) - 1):
+                    if palavra_token[num_caracter] not in caracteres_permitidos:
                       mal_formado = True
                       break
                   if mal_formado:
